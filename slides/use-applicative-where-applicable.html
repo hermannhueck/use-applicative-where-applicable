@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Use Applicative where applicable!</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="keywords" content="Scala,Cats,Applicative,Monad">
+    <meta name="description" content="A talk on the merits of Applicative.">
+
+    <style type="text/css">
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body {
+        font-family: 'Droid Serif';
+      }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: 400;
+        margin-bottom: 0;
+      }
+      .remark-slide-content h1 { font-size: 4em; }
+      .remark-slide-content h2 { font-size: 2.5em; }
+      .remark-slide-content h3 { font-size: 1.6em; }
+      .footnote {
+        position: absolute;
+        bottom: 3em;
+      }
+      li p { line-height: 1.25em; }
+      .red { color: #fa0000; }
+      .large { font-size: 2em; }
+      a, a > code {
+        color: rgb(249, 38, 114);
+        text-decoration: none;
+      }
+      code {
+        background: #e7e8e2;
+        border-radius: 5px;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .remark-code-line-highlighted     { background-color: #373832; }
+      .pull-left {
+        float: left;
+        width: 47%;
+      }
+      .pull-right {
+        float: right;
+        width: 47%;
+      }
+      .pull-right ~ p {
+        clear: both;
+      }
+      #slideshow .slide .content code {
+        font-size: 0.8em;
+      }
+      #slideshow .slide .content pre code {
+        font-size: 0.9em;
+        padding: 15px;
+      }
+      .inverse {
+        background: #014908e1;
+        color: #f3f3f3;
+        text-shadow: 0 0 20px #333;
+      }
+      .inverse h1, .inverse h2 {
+        color: #f3f3f3;
+        line-height: 0.8em;
+      }
+
+      /* Slide-specific styling */
+      #slide-inverse .footnote {
+        bottom: 12px;
+        left: 20px;
+      }
+      #slide-how .slides {
+        font-size: 0.9em;
+        position: absolute;
+        top:  151px;
+        right: 140px;
+      }
+      #slide-how .slides h3 {
+        margin-top: 0.2em;
+      }
+      #slide-how .slides .first, #slide-how .slides .second {
+        padding: 1px 20px;
+        height: 90px;
+        width: 120px;
+        -moz-box-shadow: 0 0 10px #777;
+        -webkit-box-shadow: 0 0 10px #777;
+        box-shadow: 0 0 10px #777;
+      }
+      #slide-how .slides .first {
+        background: #fff;
+        position: absolute;
+        top: 20%;
+        left: 20%;
+        z-index: 1;
+      }
+      #slide-how .slides .second {
+        position: relative;
+        background: #fff;
+        z-index: 0;
+      }
+
+      /* Two-column layout */
+      .left-column {
+        color: #777;
+        width: 20%;
+        height: 92%;
+        float: left;
+      }
+      .left-column h2:last-of-type, .left-column h3:last-child {
+        color: #000;
+      }
+      .right-column {
+        width: 75%;
+        float: right;
+        padding-top: 1em;
+      }
+
+      /* Two-column layout 50/50 */
+      .left-column-50 {
+        width: 49%;
+        float: left;
+      }
+      .right-column-50 {
+        width: 49%;
+        float: right;
+      }
+
+      .tiny-font {
+        font-size: 1em
+      }
+    </style>
+  </head>
+  <body>
+
+<textarea id="source">
+
+name: main-template
+layout: true
+class: left, top
+<!---
+class: left, top, inverse
+-->
+
+---
+
+class: center
+
+<br/>
+# Use Applicative
+# where applicable!
+<br/>
+<br/>
+<br/>
+## &copy; 2018 Hermann Hueck
+<br/>
+https://github.com/hermannhueck/use-applicative-where-applicable
+
+---
+
+# Abstract
+<br/>
+<br/>
+Most Scala developers are familiar with monadic precessing.
+Monads provide *flatMap* and hence for-comprehensions
+(syntactic sugar for *map* and *flatMap*).
+
+Often we don't need Monads.
+Applicatives are sufficient in many cases.
+
+In this talk I examine the differences between monadic and applicative processing
+and give some guide lines when to use which.
+
+After a closer look to the Applicative trait
+I will contrast the gist of *Either* and *cats.data.Validated*.
+
+I will also look at traversing and sequencing which harness Applicatives as well.
+
+.footnote[
+Examples are implemented with *Cats*.
+]
+
+
+---
+
+# Agenda
+<br/>
+
+1. Monadic Processing
+1. Aside: Curried functions
+1. Aside: Effects
+1. Applicative Processing
+1. Comparing Monad with Applicative
+1. The Applicative trait
+1. Either vs. Validated
+1. Traversals
+1. Resources
+
+---
+
+class: middle, center
+
+# 1. Monadic Processing
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+
+.footnote[
+&nbsp; &nbsp; &nbsp; &nbsp; See: *examples.MonadicProcessing*
+]
+
+---
+
+## The Problem:
+### How to compute values wrapped in a context?
+
+### Example context/effect: *Option*
+<br/>
+
+```scala
+def processInts(compute: (Int, Int, Int) => Int)
+               (oi1: Option[Int], oi2: Option[Int], oi3: Option[Int])
+               : Option[Int] = ???
+```
+
+--
+
+```scala
+
+val sum3Ints: (Int, Int, Int) => Int = _ + _ + _
+
+val result1 = processInts(sum3Ints, Some(1), Some(2), Some(3))
+// result1: Option[Int] = Some(6)
+
+val result2 = processInts(sum3Ints, Some(1), Some(2), None)
+// result2: Option[Int] = None
+```
+
+---
+
+## The Standard Solution:
+### Monadic Processing with a for-comprehension
+
+### Example context/effect: *Option*
+<br/>
+
+```scala
+def processInts(compute: (Int, Int, Int) => Int)
+               (oi1: Option[Int], oi2: Option[Int], oi3: Option[Int])
+               : Option[Int] =
+  for {
+    i1 <- oi1
+    i2 <- oi2
+    i3 <- oi3
+  } yield compute(i1, i2, i3)
+```
+
+--
+
+```scala
+
+val sum3Ints: (Int, Int, Int) => Int = _ + _ + _
+
+val result1 = processInts(sum3Ints, Some(1), Some(2), Some(3))
+// result1: Option[Int] = Some(6)
+
+val result2 = processInts(sum3Ints, Some(1), Some(2), None)
+// result2: Option[Int] = None
+```
+
+---
+
+## Abstracting &nbsp; *Option* &nbsp; to &nbsp; *F[_]: Monad*
+<br/>
+
+```scala
+def processInts[F[_]: Monad](compute: (Int, Int, Int) => Int)
+                            (fi1: F[Int], fi2: F[Int], fi3: F[Int]): F[Int] =
+  for {
+    i1 <- fi1
+    i2 <- fi2
+    i3 <- fi3
+  } yield compute(i1, i2, i3)
+```
+
+--
+
+```scala
+
+val sum3Ints: (Int, Int, Int) => Int = _ + _ + _
+
+val result1 = processInts(sum3Ints, Some(1), Some(2), Some(3))
+// result1: Option[Int] = Some(6)
+
+val result2 = processInts(sum3Ints, Some(1), Some(2), None)
+// result2: Option[Int] = None
+
+val result3 = processInts(sum3Ints)(List(1, 2), List(10, 20), List(100, 200))
+// result3: List[Int] = List(111, 211, 121, 221, 112, 212, 122, 222)
+
+val result4 = processInts(sum3Ints)(Future(1), Future(2), Future(3))
+Await.ready(result4, 1 second)
+// result4 = scala.concurrent.Future[Int] = Future(Success(6))
+```
+
+---
+
+## Abstracting away the *Int*s
+<br/>
+
+```scala
+def processABC[F[_]: Monad, A, B, C, D](compute: (A, B, C) => D)
+                                       (fa: F[A], fb: F[B], fc: F[C]): F[D] =
+  for {
+    a <- fa
+    b <- fb
+    c <- fc
+  } yield compute(a, b, c)
+```
+
+--
+
+```scala
+
+val sum3Ints: (Int, Int, Int) => Int = _ + _ + _
+
+val result1 = processABC(sum3Ints, Some(1), Some(2), Some(3))
+// result1: Option[Int] = Some(6)
+
+val result2 = processABC(sum3Ints, Some(1), Some(2), None)
+// result2: Option[Int] = None
+
+val result3 = processABC(sum3Ints)(List(1, 2), List(10, 20), List(100, 200))
+// result3: List[Int] = List(111, 211, 121, 221, 112, 212, 122, 222)
+
+val result4 = processABC(sum3Ints)(Future(1), Future(2), Future(3))
+Await.ready(result4, 1 second)
+// result4 = scala.concurrent.Future[Int] = Future(Success(6))
+```
+
+---
+
+## Replacing the for-comprehension
+## (syntactic sugar) with *map / flatMap*
+<br/>
+
+```scala
+def processABC[F[_]: Monad, A, B, C, D](compute: (A, B, C) => D)
+                                       (fa: F[A], fb: F[B], fc: F[C]): F[D] =
+  fa flatMap { a =>
+    fb flatMap { b =>
+      fc map { c =>
+        compute(a, b, c)
+      }
+    }
+  }
+```
+
+---
+
+class: middle, center
+
+# 2. Aside: Effects
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+---
+
+##  What is *F[_]* ?
+<br/>
+*F[_]* is a type constructor.
+
+It represents the <u>__computational context__</u> of the operation, also called the <u>__effect__</u> of the operation.
+
+.center[
+## effect != side effect
+]
+
+<br/>
+With the context bound *F[_]: Monad* we constrain the effect to be a Monad.
+
+This makes *F* a place holder for any Monad which provides us *map* and *flatMap*.
+
+---
+
+## Some Effects
+<br/>
+<br/>
+
+| &nbsp; <u>F[_]</u>   | &nbsp; &nbsp; &nbsp; <u>Effect</u>
+|----------------------|-----------------------------------------------
+| &nbsp; Option        | &nbsp; &nbsp; &nbsp; a possibly missing value
+| &nbsp; List          | &nbsp; &nbsp; &nbsp; an arbitrary number of values of the same type
+| &nbsp; Future        | &nbsp; &nbsp; &nbsp; an asyncronously computed value
+| &nbsp; Either        | &nbsp; &nbsp; &nbsp; either a value of this type or a value of that type
+| &nbsp; Id            | &nbsp; &nbsp; &nbsp; the effect of having no effect
+| &nbsp; IO            | &nbsp; &nbsp; &nbsp; the effect of having a side effect
+| &nbsp; Tuple2        | &nbsp; &nbsp; &nbsp; two values of possibly different type
+| &nbsp; Function1     | &nbsp; &nbsp; &nbsp; a pure computation taking an input and returning an output
+
+---
+
+class: middle, center
+
+# 3. Aside: Curried functions
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+
+.footnote[
+&nbsp; &nbsp; &nbsp; &nbsp; See: *examples.CurriedFunctions*
+]
+
+---
+
+## Every function is a *Function1* ...
+<br/>
+
+--
+
+```scala
+val sum3Ints: (Int, Int, Int) => Int = _ + _ + _
+// sum3Ints: (Int, Int, Int) => Int = $$Lambda$6510/1947502277@3c418454
+```
+
+--
+
+... if you curry it.
+
+--
+
+```scala
+val sumCurried: Int => Int => Int => Int = sum3Ints.curried
+// sumCurried: Int => (Int => (Int => Int)) = scala.Function3$$Lambda$4346/99143056@43357c0e
+```
+
+--
+
+The type arrow ( => ) is right associative.
+Hence we can omit the parentheses.
+
+--
+
+The type arrow ( => ) is syntactic sugar for Function1.<br/>
+*A => B* is the same as *Function1[A, B]*.
+
+--
+
+```scala
+val sumCurried2: Function1[Int, Function1[Int, Function1[Int, Int]]] = sumCurried
+// sumCurried2: Int => (Int => (Int => Int)) = scala.Function3$$Lambda$4346/99143056@7567ab8
+```
+
+--
+
+If uncurried again, you get the original function back.
+
+```scala
+val sumUncurried: (Int, Int, Int) => Int = Function.uncurried(sumCurried)
+// sumUncurried: (Int, Int, Int) => Int = scala.Function$$$Lambda$6605/301079867@1589d895
+```
+
+---
+
+## Partial application of curried functions
+<br/>
+
+--
+
+```scala
+val sum3Ints: (Int, Int, Int) => Int = _ + _ + _
+val sumCurried: Int => Int => Int => Int = sum3Ints.curried
+```
+
+--
+
+```scala
+val applied1st = sumCurried(1)
+// applied1st: Int => (Int => Int) = scala.Function3$$Lambda$4348/1531035406@5a231dc1
+```
+
+--
+
+```scala
+val applied2nd = applied1st(2)
+// applied2nd: Int => Int = scala.Function3$$Lambda$4349/402963549@117e96fb
+```
+
+--
+
+```scala
+val applied3rd = applied2nd(3)
+// applied3rd: Int = 6
+```
+
+--
+
+```scala
+val appliedAllAtOnce = sumCurried(1)(2)(3)
+// appliedAllAtOnce: Int = 6
+```
+
+--
+
+As curried functions can be partially applied,<br/>
+they are better <u>composable</u> than their uncurried counterparts.
+
+---
+
+## Curring in Haskell?
+<br/>
+<br/>
+--
+
+### Nope!
+
+--
+
+Every function is curried.<br/>
+It can take only one parameter ...<br/>
+... and returns only one value which might be another function.
+
+--
+
+Invoking functions with more than one parameter is possible.<br/>
+That is just syntactic sugar for curried functions.
+
+---
+
+class: middle, center
+
+# 4. Applicative Processing
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+
+.footnote[
+&nbsp; &nbsp; &nbsp; &nbsp; See: *examples.ApplicativeProcessing*
+]
+
+---
+
+## Trait Applicative
+<br/>
+<br/>
+
+```scala
+trait Functor[F[_]] { // simplified
+
+  def map[A, B](fa: F[A])(f: A => B): F[B]
+}
+```
+<br/>
+
+```scala
+trait Applicative[F[_]] extends Functor[F] { // simplified
+
+  def pure[A](a: A): F[A]
+
+  def ap[A, B](ff: F[A => B])(fa: F[A]): F[B]
+}
+```
+
+---
+
+## Replacing monadic with applicative context
+<br/>
+
+--
+
+Monad is more powerful than Applicative.<br/>
+Applicative is weaker, but sufficient for our problem.
+
+--
+
+<br/>
+Monadic context:
+
+```scala
+def processABC[F[_]: Monad, A, B, C, D](compute: (A, B, C) => D)
+                                       (fa: F[A], fb: F[B], fc: F[C]): F[D] =
+  ??? // monadic solution
+```
+<br/>
+
+--
+
+Applicative context:
+
+```scala
+def processABC[F[_]: Applicative, A, B, C, D](compute: (A, B, C) => D)
+                                          (fa: F[A], fb: F[B], fc: F[C]): F[D] =
+  ??? // applicative solution
+```
+<br/>
+
+--
+
+Let's start with *Option[Int]* again and then abstract the solution.
+
+---
+
+## Solution with *Applicative#ap*:
+
+### Example context/effect: *Option*
+<br/>
+
+```scala
+def processInts(compute: (Int, Int, Int) => Int)
+               (oi1: Option[Int], oi2: Option[Int], oi3: Option[Int])
+               : Option[Int] = {
+  val f3Curried: Int => Int => Int => Int = compute.curried
+  val of3: Option[Int => Int => Int => Int] = Some(f3Curried)
+  val of2: Option[Int => Int => Int] = of3 ap oi1
+  val of1: Option[Int => Int] = of2 ap oi2
+  val result: Option[Int] = of1 ap oi3
+  result
+}
+```
+
+*Some(f3Curried)* lifts the curried function into the *Option* context.
+
+--
+
+```scala
+val sum3Ints: (Int, Int, Int) => Int = _ + _ + _
+
+val result1 = processInts(sum3Ints, Some(1), Some(2), Some(3))
+// result1: Option[Int] = Some(6)
+
+val result2 = processInts(sum3Ints, Some(1), Some(2), None)
+// result2: Option[Int] = None
+```
+
+---
+
+## Abstracting &nbsp; *Option* &nbsp; to &nbsp; *F[_]: Applicative*
+<br/>
+<br/>
+<br/>
+
+```scala
+def processInts[F[_]: Applicative](compute: (Int, Int, Int) => Int)
+                                  (fi1: F[Int], fi2: F[Int], fi3: F[Int])
+                                  : F[Int] = {
+  val fCurried: Int => Int => Int => Int = compute.curried
+  val ff: F[Int => Int => Int => Int] = Applicative[F].pure(fCurried)
+  ff ap fi1 ap fi2 ap fi3
+}
+```
+
+*Applicative[F].pure(fCurried)* lifts the curried function into the generic *F* context.
+
+---
+
+## Abstracting away the *Int*s
+<br/>
+<br/>
+<br/>
+
+```scala
+def processABC[F[_]: Applicative, A, B, C, D](compute: (A, B, C) => D)
+                                             (fa: F[A], fb: F[B], fc: F[C])
+                                             : F[D] = {
+  val fCurried: A => B => C => D = compute.curried
+  val ff: F[A => B => C => D] = Applicative[F].pure(fCurried)
+  ff ap fa ap fb ap fc
+}
+```
+
+---
+
+## Using *pure* syntax and _&lt;*&gt;_ (alias for *ap*)
+<br/>
+<br/>
+<br/>
+
+```scala
+def processABC[F[_]: Applicative, A, B, C, D](compute: (A, B, C) => D)
+                                             (fa: F[A], fb: F[B], fc: F[C])
+                                             : F[D] = {
+  compute.curried.pure[F] <*> fa <*> fb <*> fc
+}
+```
+
+---
+
+## Using *Applicative#ap3* saves us from currying
+<br/>
+<br/>
+<br/>
+
+```scala
+def processABC[F[_]: Applicative, A, B, C, D](compute: (A, B, C) => D)
+                                             (fa: F[A], fb: F[B], fc: F[C])
+                                             : F[D] = {
+  Applicative[F].ap3(compute.pure[F])(fa, fb, fc)
+}
+```
+
+---
+
+## Using *Applicative#map3* saves us from lifting the function with *pure*
+<br/>
+<br/>
+<br/>
+
+```scala
+def processABC[F[_]: Applicative, A, B, C, D](compute: (A, B, C) => D)
+                                             (fa: F[A], fb: F[B], fc: F[C])
+                                             : F[D] = {
+  Applicative[F].map3(fa, fb, fc)(compute)
+}
+```
+
+*map2*, *map3* .. *map22* are available for *Applicative*.
+
+---
+
+## *Apply* is just *Applicative* without *pure*
+<br/>
+<br/>
+<br/>
+
+```scala
+def processABC[F[_]: Apply, A, B, C, D](compute: (A, B, C) => D)
+                                       (fa: F[A], fb: F[B], fc: F[C])
+                                       : F[D] = {
+  Apply[F].map3(fa, fb, fc)(compute)
+}
+```
+
+*map2*, *map3* .. *map22* come from *Apply*.
+
+---
+
+## Using *Tuple3#mapN* for convenience
+<br/>
+<br/>
+<br/>
+
+```scala
+def processABC[F[_]: Apply, A, B, C, D](compute: (A, B, C) => D)
+                                       (fa: F[A], fb: F[B], fc: F[C])
+                                       : F[D] = {
+  (fa, fb, fc) mapN compute
+}
+```
+
+We just tuple up the three *F*'s and invoke *mapN* with a function
+that takes three parameters and fuses the *F*'s into an *F*-result.
+
+*mapN* is provided as an enrichment for *Tuple2*, *Tuple3* .. *Tuple22*.
+
+---
+
+## Comparing the solutions
+<br/>
+
+--
+
+### Monadic solution:
+
+```scala
+def processABC[F[_]: Monad, A, B, C, D](compute: (A, B, C) => D)
+                                       (fa: F[A], fb: F[B], fc: F[C]): F[D] =
+  for {
+    a <- fa
+    b <- fb
+    c <- fc
+  } yield compute(a, b, c)
+```
+
+--
+
+### Applicative solution:
+
+```scala
+def processABC[F[_]: Apply, A, B, C, D](compute: (A, B, C) => D)
+                                       (fa: F[A], fb: F[B], fc: F[C]) : F[D] =
+  (fa, fb, fc) mapN compute
+```
+
+---
+
+## Currying again
+<br/>
+
+--
+
+We provided *processABC* with two parameter lists.
+
+```scala
+def processABC[F[_]: Apply, A, B, C, D](compute: (A, B, C) => D)
+                                       (fa: F[A], fb: F[B], fc: F[C]) : F[D] =
+  (fa, fb, fc) mapN compute
+```
+
+--
+<br/>
+
+This improves composability and allows us provide the *compute* function and the effectful *F*'s in separate steps.
+
+```scala
+// providing the computation
+def processEffectfulInts[F[_]: Apply](fi1: F[Int], fi2: F[Int], fi3: F[Int])
+                                     : F[Int] =
+  processABC(sum3Ints)(fi1, fi2, fi3)
+```
+
+```scala
+val result1 = processEffectfulInts(Option(1), Option(2), Option(3))
+// result1: Option[Int] = Some(6)
+val result2 = processEffectfulInts(List(1, 2), List(10, 20), List(100, 200))
+// result2: List[Int] = List(111, 211, 121, 221, 112, 212, 122, 222)
+```
+
+---
+
+class: middle, center
+
+# 5. Comparing Monad with Applicative
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+---
+
+## Sequential vs. parallel
+<br/>
+
+### Monads enforce sequential operation!
+
+Imagine a for-comprehension.<br/>
+The generators are executed in sequence, one after the other.<br/>
+The yield clause is executed after all generators have finished.<br/>
+
+### Applicatives allow for parallel operations!
+
+The operations are by nature <u>independent</u> of each other.<br/>
+(That does not mean, they are asynchronous.)<br/>
+
+---
+
+## Fail-fast semantics
+<br/>
+
+### Monads enforce short-circuiting!
+
+If an 'erraneous' value (e.g. *None*, *Nil* or *Left*) is found in a monadic computation,
+the computation stops immediately, because the result will not change if processing were continued.<br/>
+E.g.: We are not able to collect errors.
+
+### Applicatives do not short-circuit!
+
+As applicative operations are independent of each other processing does not stop if an error occurs.<br/>
+It is possible to collect errors (see: *cats.data.Validated*)<br/>
+*cats.data.Validated* has an Applicative instance, but no Monad instance.
+
+---
+
+## Composition
+<br/>
+
+### Monads do not compose!
+
+To kind of 'compose' Monads you need an extra construct such as a Monad Transformer
+which itself is a Monad. I.e.: If we want to compose two Moands we need a third Monad to stack them up.
+
+### Applicatives compose!
+
+Composition of (Functor and) Aplicative is a breeze.<br/>
+It is genuinely supported by these type classes.
+
+.footnote[
+&nbsp; &nbsp; &nbsp; &nbsp; See: *examples.Composition*
+]
+
+---
+
+## Composition - Code
+
+```scala
+val loi1 = List(Some(1), Some(2))
+val loi2 = List(Some(10), Some(20))
+```
+
+### Monads do not compose!
+
+```scala
+def processMonadic(xs: List[Option[Int]], ys: List[Option[Int]]): List[Option[Int]] = {
+  val otli: OptionT[List, Int] =
+    for {
+      x <- OptionT[List, Int](xs)
+      y <- OptionT[List, Int](ys)
+    } yield x + y
+  otli.value
+}
+val result1 = processMonadic(loi1, loi2)
+// result1: List[Option[Int]] = List(Some(11), Some(21), Some(12), Some(22))
+```
+
+### Applicatives compose!
+
+```scala
+def processApplicative(xs: List[Option[Int]], ys: List[Option[Int]]): List[Option[Int]] =
+  Applicative[List].compose[Option].map2(xs, ys)((_:Int) + (_:Int))
+
+val result2 = processApplicative(loi1, loi2)
+// result2: List[Option[Int]] = List(Some(11), Some(21), Some(12), Some(22))
+```
+
+---
+
+## When to use which
+<br/>
+
+### Use Applicative if all computations are independent of each other.
+
+Howto:
+
+- Write a monadic solution with a for-comprehension.
+- If the generated values (to the left of the generator arrow *&lt;-* )
+are only used in the *yield* clause at the end (not in an other generator)
+the computations are independent and allow for an applicative solution.
+- Tuple up the computations and *mapN* them with a function
+which fuses the computation results to a final result.
+
+(This howto is applicable only if the effect in question also has a Monad instance.)
+
+---
+
+## Principle of Least Power
+<br/>
+
+**Given a choice of solutions,**<br/>
+**pick the least powerful solution**<br/>
+**capable of solving your problem.**
+
+\-- Li Haoyi
+
+---
+
+class: middle, center
+
+# 6. The Applicative trait
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+---
+
+class: center
+
+## Cats typeclass hierarchy (a small section of it)
+
+![typeclass hierarchy](cats-typeclass-hierarchy.png "Cats typeclass hierarchy")
+
+.footnote[ .tiny-font[
+Complete hierarchy [here](https://camo.githubusercontent.com/e29cc3587dd331d1af177c8ed163de3b15ea04f2/68747470733a2f2f63646e2e7261776769742e636f6d2f74706f6c656361742f636174732d696e666f677261706869632f6d61737465722f636174732e7376673f783d31)
+] ]
+
+---
+
+## Typeclass Functor
+
+```scala
+trait Functor[F[_]] { // simplified
+
+  // ----- intrinsic abstract Functor method
+
+  def map[A, B](fa: F[A])(f: A => B): F[B]
+
+  // ----- method implementations in terms of map
+
+  def fmap[A, B](fa: F[A])(f: A => B): F[B] = map(fa)(f) // alias for map
+
+  def lift[A, B](f: A => B): F[A] => F[B] = fa => map(fa)(f)
+
+  def as[A, B](fa: F[A], b: B): F[B] = map(fa)(_ => b)
+
+  def void[A](fa: F[A]): F[Unit] = as(fa, ())
+
+  def compose[G[_]: Functor]: Functor[Lambda[X => F[G[X]]]] = ???
+}
+```
+
+---
+
+## Typeclass Applicative
+
+```scala
+trait Applicative[F[_]] extends Functor[F] { // simplified
+
+  // ----- intrinsic abstract Applicative methods
+  def pure[A](a: A): F[A]
+  def ap[A, B](ff: F[A => B])(fa: F[A]): F[B]
+
+  // ----- method implementations in terms of pure and ap
+  override def map[A, B](fa: F[A])(f: A => B): F[B] = ap(pure(f))(fa)
+
+  def <*>[A, B](ff: F[A => B])(fa: F[A]): F[B] = ap(ff)(fa) // alias for ap
+
+  def ap2[A, B, Z](ff: F[(A, B) => Z])(fa: F[A], fb: F[B]): F[Z] = {
+    val ffBZ: F[B => Z] = ap(map(ff)(f => (a:A) => (b:B) => f(a, b)))(fa)
+    ap(ffBZ)(fb)
+  }
+  // continued with ap3, ap4 .. ap22
+
+  def map2[A, B, Z](fa: F[A], fb: F[B])(f: (A, B) ⇒ Z): F[Z] =
+    ap(map(fa)(a => f(a, _: B)))(fb)
+  // continued with map3, map4 .. map22
+
+  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)] = map2(fa, fb)((_, _))
+
+  def tuple2[A, B](fa: F[A], fb: F[B]): F[(A, B)] = product(fa, fb)
+  // continued with tuple3, tuple4 .. tuple22
+
+  def compose[G[_]: Applicative]: Applicative[Lambda[X => F[G[X]]]] = ???
+}
+```
+
+---
+
+class: middle, center
+
+# 7. Either vs. Validated
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+
+.footnote[
+&nbsp; &nbsp; &nbsp; &nbsp; See: *examples.EitherVsValidated*
+]
+
+---
+
+## Monadic processing with *Either*
+<br/>
+
+Monadic processing enforces fail-fast semantics.<br/>
+After an erraneous operation subsequent operations are not executed.<br/>
+Hence we get only the first of possibly multiple errors.
+<br/>
+<br/>
+
+--
+
+```scala
+val result: Either[List[String], Int] =
+  for {
+    x <- 5.asRight[List[String]]
+    y <- List("Error 1").asLeft[Int]
+    z <- List("Error 2").asLeft[Int] // List("Error 2") is lost!
+  } yield x + y + z
+
+// result: Either[List[String],Int] = Left(List(Error 1))
+```
+
+---
+
+## Applicative processing with *Either*
+<br/>
+
+Applicative processing disables fail-fast semantics.<br/>
+But with *Either* we get the same result as before.<br/>
+Because *Either* has a Monad instance.
+<br/>
+<br/>
+
+--
+
+```scala
+val result: Either[List[String], Int] =
+  (5.asRight[List[String]],
+    List("Error 1").asLeft[Int],
+    List("Error 2").asLeft[Int] // List("Error 2") is lost!
+  ) mapN ((_: Int) + (_: Int) + (_: Int))
+
+// result: Either[List[String],Int] = Left(List(Error 1))
+```
+
+---
+
+## Applicative processing with *Validated*
+<br/>
+
+*cats.data.Validated* is designed in analogy to *Either*.<br/>
+Instead of *Right* and *Left* it has *Valid* and *Invalid*.<br/>
+*Validated* has an Applicative instance but no Monad instance.
+<br/>
+<br/>
+
+--
+
+```scala
+val result: Validated[List[String], Int] =
+  (5.valid[List[String]],
+    List("Error 1").invalid[Int],
+    List("Error 2").invalid[Int] // List("Error 2") is preserved!
+  ) mapN ((_: Int) + (_: Int) + (_: Int))
+
+// result: cats.data.Validated[List[String],Int] = Invalid(List(Error 1, Error 2))
+```
+
+---
+
+## Conversions between *Either* and *Validated*
+<br/>
+
+Conversion is supported in both directions<br/>
+*Either#toValidated* converts an *Either*. to a *Validated.<br/>
+*Validated#toEither* converts a *Validated* to an *Either.
+<br/>
+<br/>
+
+--
+
+```scala
+val result: Validated[List[String], Int] =
+  (5.asRight[List[String]].toValidated,
+    List("Error 1").asLeft[Int].toValidated,
+    List("Error 2").asLeft[Int].toValidated // List("Error 2") is preserved!
+  ) mapN ((_: Int) + (_: Int) + (_: Int))
+
+// result: cats.data.Validated[List[String],Int] = Invalid(List(Error 1, Error 2))
+
+val resultAsEither = result.toEither
+// resultAsEither: Either[List[String],Int] = Left(List(Error 1, Error 2))
+
+```
+
+---
+
+class: middle, center
+
+# 8. Traversals
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+
+.footnote[
+&nbsp; &nbsp; &nbsp; &nbsp; See: *examples.Traversals*
+]
+
+---
+
+## Recap: *Future.traverse* and *Future.sequence*
+
+Most Scala devs know these methods defined on the *Future* companion object.
+
+--
+
+Let's start with *Future.sequence*. It is the simpler one.
+
+<u>Future.sequence API doc:</u> *Simple version of Future.traverse. Asynchronously and non-blockingly
+transforms a TraversableOnce[Future[A]] into a Future[TraversableOnce[A]].
+Useful for reducing many Futures into a single Future.*
+
+--
+
+Simply spoken: *sequence* turns a *List[Future[A]]* into a *Future[List[A]]*.
+
+```scala
+val lfd: List[Future[Double]] = List(Future(2.0), Future(4.0), Future(6.0))
+val fld: Future[List[Double]] = Future.sequence(lfd)
+```
+
+--
+
+Typically in an application we don't have a *List[Future[B]]*,
+but we produce it by processing a *List[A]* asynchronously.
+We can first map the *A => List[Future[B]]* and then invoke *sequence* on the resulting list.
+
+--
+
+```scala
+val li: List[Int] = List(1, 2, 3)
+val doubleItAsync: Int => Future[Double] = x => Future { x * 2.0 }
+val lfi: List[Future[Double]] = li.map(doubleItAsync)
+val fld: Future[List[Double]] = Future.sequence(lfi)
+```
+
+---
+
+## Recap: *Future.traverse* and *Future.sequence*
+
+Mapping and sequencing traverses the list twice.<br/>
+*traverse* fuses mapping and sequencing into a single traversal.
+
+--
+
+*Future.traverse* takes a *List[A]* and a mapping function from *A => Future[B]*
+and returns a *Future[List[B]]*.
+
+```scala
+val li: List[Int] = List(1, 2, 3)
+val doubleItAsync: Int => Future[Double] = x => Future { x * 2.0 }
+val fld: Future[List[Double]] = Future.traverse(li)(doubleItAsync)
+```
+
+--
+
+Providing *identity* as mapping function to *traverse* has the same effect as *sequence*.
+
+```scala
+val lfd: List[Future[Double]] = List(Future(2.0), Future(4.0), Future(6.0))
+val fld: Future[List[Double]] = Future.traverse(lfd)(identity)
+```
+
+---
+
+## *Traverse*
+
+Cats generalizes this concept into the Traverse typeclass.
+
+--
+
+Mentally replace *List* by *F[_]: Foldable, Functor* and *Future* by *G[_]: Applicative*.
+
+--
+
+```scala
+trait Traverse[F[_]] extends Foldable[F] with Functor[F] { // simplified
+
+  def traverse[G[_], A, B](fa: F[A])(f: A => G[B])
+                          (implicit AG: Applicative[G]): G[F[B]]
+
+  def sequence[G[_], A](fga: F[G[A]])(implicit AG: Applicative[G]): G[F[A]] =
+    traverse(fga)(identity)
+
+  // map in terms of traverse using the Id context
+  override def map[A, B](fa: F[A])(f: A => B): F[B] = traverse(fa)(f: A => Id[B])
+}
+```
+
+--
+
+Both methods require the *G[_]* to be an Applicative (*Future* before).
+
+--
+
+The structure traversed over (*List* before) must be *Foldable with Functor*.
+Hence *Traverse* extends these two traits.
+
+--
+
+The *traverse* function can indeed be implemented with *foldLeft* or *foldRight*.
+On the other hand *foldLeft*, *foldRight* and *map* can be implemented with *traverse*.
+
+---
+
+## *Traverse* in practice
+
+Instead of *Future.sequence* we can now use *Traverse[List].sequence*.
+
+--
+
+```scala
+val lfd: List[Future[Double]] = List(Future(2.0), Future(4.0), Future(6.0))
+val fld1: Future[List[Double]] = Traverse[List].sequence(lfd)
+import cats.syntax.traverse._ // supports 'sequence' as an enrichment of List
+val fld2: Future[List[Double]] = lfd.sequence
+```
+
+--
+
+Instead of *Future.traverse* we can now use *Traverse[List].traverse*.
+
+--
+
+```scala
+val li: List[Int] = List(1, 2, 3)
+val doubleItAsync: Int => Future[Double] = x => Future { x * 2.0 }
+val fld1: Future[List[Double]] = Traverse[List].traverse(li)(doubleItAsync)
+import cats.syntax.traverse._ // supports 'traverse' as an enrichment of List
+val fld2: Future[List[Double]] = li traverse doubleItAsync
+```
+
+--
+
+We now can traverse over any other Foldable that has a *Traverse* instance, e.g. Vector.
+The mapping function may produce any Applicate, e.g. Option.
+
+--
+
+```scala
+val vi: Vector[Int] = Vector(3, 2, 1)
+val divideBy: Int => Option[Double] = x => if (x == 0) None else Some { 6.0 / x }
+val ovd1: Option[Vector[Double]] = Traverse[Vector].traverse(vi)(divideBy)
+import cats.syntax.traverse._ // supports 'traverse' as an enrichment of Vector
+val ovd2: Option[Vector[Double]] = vi traverse divideBy
+```
+
+---
+
+class: middle, center
+
+# 9. Resources
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+&nbsp;
+
+---
+
+## Resources (1/2)
+
+<br/>
+
+- Code and Slides of this Talk:<br/>
+  https://github.com/hermannhueck/use-applicative-where-applicable
+
+- Cats documentation:<br/>
+  https://typelevel.org/cats/typeclasses/applicative.html<br/>
+  https://typelevel.org/cats/typeclasses/traverse.html<br/>
+  https://typelevel.org/cats/datatypes/validated.html
+
+- Herding Cats, Day 3:<br/>
+  http://eed3si9n.com/herding-cats/Semigroupal.html<br/>
+  http://eed3si9n.com/herding-cats/Apply.html<br/>
+  http://eed3si9n.com/herding-cats/Applicative.html
+
+- "Scala with Cats", Chapters 6 and 7<br/>
+  Book by Noel Welsh and Dave Gurnell<br/>
+  https://underscore.io/books/scala-with-cats/
+  
+---
+
+## Resources (2/2)
+
+<br/>
+
+- Learn You a Haskell for Great Good!, Chapter 11<br/>
+  Online book by Miran Lipovaca<br/>
+  http://learnyouahaskell.com/functors-applicative-functors-and-monoids
+
+- Applicative Programming with Effects<br/>
+  Conor McBride and Ross Paterson in Journal of Functional Programming 18:1 (2008), pages 1-13<br/>
+  http://www.staff.city.ac.uk/~ross/papers/Applicative.pdf
+
+- The Essence of the Iterator Pattern<br/>
+  Jeremy Gibbons and Bruno C. d. S. Oliveira, Oxford University Computing Laboratory<br/>
+  https://www.cs.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf
+
+
+---
+
+class: middle, center
+
+## Thanks for Listening
+<br/>
+<br/>
+<br/>
+
+# Q &amp; A
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+
+https://github.com/hermannhueck/use-applicative-where-applicable
+
+
+</textarea>
+
+    <script src="remark-latest.min.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+      var slideshow = remark.create({
+        // sourceUrl: 'some-source.md',
+
+        // Set the slideshow display ratio
+        // Default: '4:3'
+        // Alternatives: '16:9', ...
+        ratio: '4:3',
+
+        // Navigation options
+        navigation: {
+          // Enable or disable navigating using scroll
+          // Default: true
+          // Alternatives: false
+          scroll: false,
+
+          // Enable or disable navigation using touch
+          // Default: true
+          // Alternatives: false
+          touch: true,
+
+          // Enable or disable navigation using click
+          // Default: false
+          // Alternatives: true
+          click: false
+        }
+      });
+    </script>
+  </body>
+</html>
