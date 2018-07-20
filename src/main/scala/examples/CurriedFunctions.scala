@@ -15,6 +15,9 @@ object CurriedFunctions extends App {
   val sum3Ints: (Int, Int, Int) => Int = _ + _ + _
   // sum3Ints: (Int, Int, Int) => Int = $$Lambda$6510/1947502277@3c418454
 
+  val sum3Ints2: Function3[Int, Int, Int, Int] = _ + _ + _
+  // sum3Ints: (Int, Int, Int) => Int = $$Lambda$6510/1947502277@3c418454
+
   val sumCurried: Int => Int => Int => Int = sum3Ints.curried
   // sumCurried: Int => (Int => (Int => Int)) = scala.Function3$$Lambda$4346/99143056@43357c0e
 

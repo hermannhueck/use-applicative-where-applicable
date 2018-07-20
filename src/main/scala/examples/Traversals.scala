@@ -98,21 +98,22 @@ object Traversals extends App {
     import cats.instances.vector._
     import cats.instances.option._
 
-    val vi: Vector[Int] = Vector(3, 2, 1)
+    val vi1: Vector[Int] = Vector(3, 2, 1)
     val vi2: Vector[Int] = Vector(3, 2, 0)
+
     val divideBy: Int => Option[Double] = x => if (x == 0) None else Some { 6.0 / x }
 
-    val ovd1: Option[Vector[Double]] = Traverse[Vector].traverse(vi)(divideBy)
-    println(ovd1)
-    val ovd12: Option[Vector[Double]] = Traverse[Vector].traverse(vi2)(divideBy)
-    println(ovd12)
+    val ovd1_1: Option[Vector[Double]] = Traverse[Vector].traverse(vi1)(divideBy)
+    println(ovd1_1)
+    val ovd1_2: Option[Vector[Double]] = Traverse[Vector].traverse(vi2)(divideBy)
+    println(ovd1_2)
 
     import cats.syntax.traverse._ // supports 'traverse' as an enrichment of Vector
 
-    val ovd2: Option[Vector[Double]] = vi traverse divideBy
-    println(ovd2)
-    val ovd22: Option[Vector[Double]] = vi2 traverse divideBy
-    println(ovd22)
+    val ovd2_1: Option[Vector[Double]] = vi1 traverse divideBy
+    println(ovd2_1)
+    val ovd2_2: Option[Vector[Double]] = vi2 traverse divideBy
+    println(ovd2_2)
   }
 
   println("\n-----\n")
