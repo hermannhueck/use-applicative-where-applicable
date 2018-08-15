@@ -1239,28 +1239,20 @@ class: middle, center
 
 ---
 
-class: center
-
-## Cats typeclass hierarchy (a small section of it)
-
-![typeclass hierarchy](cats-typeclass-hierarchy.png "Cats typeclass hierarchy")
-
-.footnote[ .tiny-font[
-Complete hierarchy [here](https://camo.githubusercontent.com/e29cc3587dd331d1af177c8ed163de3b15ea04f2/68747470733a2f2f63646e2e7261776769742e636f6d2f74706f6c656361742f636174732d696e666f677261706869632f6d61737465722f636174732e7376673f783d31)
-] ]
-
----
-
 ## Typeclass Functor
 
-```scala
-trait Functor[F[_]] { // simplified
+*Functor* is the base trait of *Applicative*.
+<br/>
+<br/>
 
-  // ----- intrinsic abstract Functor method
+```scala
+trait Functor[F[_]] {
+
+  // ----- primitive map
 
   def map[A, B](fa: F[A])(f: A => B): F[B]
 
-  // ----- method implementations in terms of map
+  // ----- implementations in terms of the primitive map
 
   def fmap[A, B](fa: F[A])(f: A => B): F[B] = map(fa)(f) // alias for map
 
@@ -1277,15 +1269,97 @@ trait Functor[F[_]] { // simplified
 ---
 
 ## Typeclass Applicative
+with primitives *pure* and *ap*
+<br/>
+<br/>
 
 ```scala
-trait Applicative[F[_]] extends Functor[F] { // simplified
+trait Applicative[F[_]] extends Functor[F] {
 
-  // ----- intrinsic abstract Applicative methods
+  // ----- primitives
+
   def pure[A](a: A): F[A]
   def ap[A, B](ff: F[A => B])(fa: F[A]): F[B]
 
-  // ----- method implementations in terms of pure and ap
+  // ----- implementations in terms of the primitives
+
+  def map2[A, B, Z](fa: F[A], fb: F[B])(f: (A, B) ⇒ Z): F[Z] =
+    ap(map(fa)(a => f(a, _: B)))(fb)
+
+  override def map[A, B](fa: F[A])(f: A => B): F[B] =
+    ap(pure(f))(fa)
+
+  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)] =
+    map2(fa, fb)((_, _))
+}
+```
+
+---
+
+## Typeclass Applicative
+with primitives *pure* and *map2*
+<br/>
+<br/>
+
+```scala
+trait Applicative[F[_]] extends Functor[F] {
+
+  // ----- primitives
+
+  def pure[A](a: A): F[A]
+  def map2[A, B, Z](fa: F[A], fb: F[B])(f: (A, B) ⇒ Z): F[Z]
+
+  // ----- implementations in terms of the primitives
+
+  def ap[A, B](ff: F[A => B])(fa: F[A]): F[B] =
+    map2(ff, fa)((f, a) => f(a)) // or: map2(ff, fa)(_(_))
+
+  override def map[A, B](fa: F[A])(f: A => B): F[B] =
+    map2(fa, pure(()))((a, _) => f(a))
+
+  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)] =
+    map2(fa, fb)((_, _))
+}
+```
+
+---
+
+## Typeclass Applicative
+with primitives *pure* and *map* and *product*
+<br/>
+<br/>
+
+```scala
+trait Applicative[F[_]] extends Functor[F] {
+
+  // ----- primitives
+
+  def pure[A](a: A): F[A]
+  override def map[A, B](fa: F[A])(f: A => B): F[B]
+  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)]
+
+  // ----- implementations in terms of the primitives
+
+  def map2[A, B, Z](fa: F[A], fb: F[B])(f: (A, B) => Z): F[Z] =
+    map(product(fa, fb)) { case (a, b) => f(a, b) }
+
+  def ap[A, B](ff: F[A => B])(fa: F[A]): F[B] =
+    map2(ff, fa)((f, a) => f(a)) // or: map2(ff, fa)(_(_))
+}
+```
+
+---
+
+## Typeclass Applicative
+
+```scala
+trait Applicative[F[_]] extends Functor[F] {
+
+  // ----- primitives
+  def pure[A](a: A): F[A]
+  def ap[A, B](ff: F[A => B])(fa: F[A]): F[B]
+
+  // ----- implementations in terms of the primitives
   override def map[A, B](fa: F[A])(f: A => B): F[B] = ap(pure(f))(fa)
 
   def <*>[A, B](ff: F[A => B])(fa: F[A]): F[B] = ap(ff)(fa) // alias for ap
@@ -1307,6 +1381,18 @@ trait Applicative[F[_]] extends Functor[F] { // simplified
   def compose[G[_]: Applicative]: Applicative[Lambda[X => F[G[X]]]] = ???
 }
 ```
+
+---
+
+class: center
+
+## Cats typeclass hierarchy (a small section of it)
+
+![typeclass hierarchy](cats-typeclass-hierarchy.png "Cats typeclass hierarchy")
+
+.footnote[ .tiny-font[
+Complete hierarchy [here](https://camo.githubusercontent.com/e29cc3587dd331d1af177c8ed163de3b15ea04f2/68747470733a2f2f63646e2e7261776769742e636f6d2f74706f6c656361742f636174732d696e666f677261706869632f6d61737465722f636174732e7376673f783d31)
+] ]
 
 ---
 
