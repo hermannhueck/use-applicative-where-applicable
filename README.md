@@ -13,7 +13,7 @@ In this talk I examine the differences between monadic and applicative processin
 and give some guide lines when to use which.
 
 After a closer look to the Applicative trait
-I will contrast the gist of *Either* and *cats.data.Validated*.
+I will contrast the gist of *Either* and *cats.data.Validated* (the latter being an Applicative but not a Monad).
 
 I will also look at traversing and sequencing
 which harness Applicatives as well.
