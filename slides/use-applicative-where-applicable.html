@@ -1,142 +1,194 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Use Applicative where applicable!</title>
 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <meta name="keywords" content="Scala,Cats,Applicative,Monad">
-    <meta name="description" content="A talk on the merits of Applicative.">
+<head>
+  <title>Use Applicative where applicable!</title>
 
-    <style type="text/css">
-      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
-      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
-      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="keywords" content="Scala,Cats,Applicative,Monad">
+  <meta name="description" content="A talk on the merits of Applicative.">
 
-      body {
-        font-family: 'Droid Serif';
-      }
-      h1, h2, h3 {
-        font-family: 'Yanone Kaffeesatz';
-        font-weight: 400;
-        margin-bottom: 0;
-      }
-      .remark-slide-content h1 { font-size: 4em; }
-      .remark-slide-content h2 { font-size: 2.5em; }
-      .remark-slide-content h3 { font-size: 1.6em; }
-      .footnote {
-        position: absolute;
-        bottom: 3em;
-      }
-      li p { line-height: 1.25em; }
-      .red { color: #fa0000; }
-      .large { font-size: 2em; }
-      a, a > code {
-        color: rgb(249, 38, 114);
-        text-decoration: none;
-      }
-      code {
-        background: #e7e8e2;
-        border-radius: 5px;
-      }
-      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
-      .remark-code-line-highlighted     { background-color: #373832; }
-      .pull-left {
-        float: left;
-        width: 47%;
-      }
-      .pull-right {
-        float: right;
-        width: 47%;
-      }
-      .pull-right ~ p {
-        clear: both;
-      }
-      #slideshow .slide .content code {
-        font-size: 0.8em;
-      }
-      #slideshow .slide .content pre code {
-        font-size: 0.9em;
-        padding: 15px;
-      }
-      .inverse {
-        background: #014908e1;
-        color: #f3f3f3;
-        text-shadow: 0 0 20px #333;
-      }
-      .inverse h1, .inverse h2 {
-        color: #f3f3f3;
-        line-height: 0.8em;
-      }
+  <style type="text/css">
+    @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+    @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+    @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
 
-      /* Slide-specific styling */
-      #slide-inverse .footnote {
-        bottom: 12px;
-        left: 20px;
-      }
-      #slide-how .slides {
-        font-size: 0.9em;
-        position: absolute;
-        top:  151px;
-        right: 140px;
-      }
-      #slide-how .slides h3 {
-        margin-top: 0.2em;
-      }
-      #slide-how .slides .first, #slide-how .slides .second {
-        padding: 1px 20px;
-        height: 90px;
-        width: 120px;
-        -moz-box-shadow: 0 0 10px #777;
-        -webkit-box-shadow: 0 0 10px #777;
-        box-shadow: 0 0 10px #777;
-      }
-      #slide-how .slides .first {
-        background: #fff;
-        position: absolute;
-        top: 20%;
-        left: 20%;
-        z-index: 1;
-      }
-      #slide-how .slides .second {
-        position: relative;
-        background: #fff;
-        z-index: 0;
-      }
+    body {
+      font-family: 'Droid Serif';
+    }
 
-      /* Two-column layout */
-      .left-column {
-        color: #777;
-        width: 20%;
-        height: 92%;
-        float: left;
-      }
-      .left-column h2:last-of-type, .left-column h3:last-child {
-        color: #000;
-      }
-      .right-column {
-        width: 75%;
-        float: right;
-        padding-top: 1em;
-      }
+    h1,
+    h2,
+    h3 {
+      font-family: 'Yanone Kaffeesatz';
+      font-weight: 400;
+      margin-bottom: 0;
+    }
 
-      /* Two-column layout 50/50 */
-      .left-column-50 {
-        width: 49%;
-        float: left;
-      }
-      .right-column-50 {
-        width: 49%;
-        float: right;
-      }
+    .remark-slide-content h1 {
+      font-size: 4em;
+    }
 
-      .tiny-font {
-        font-size: 1em
-      }
-    </style>
-  </head>
-  <body>
+    .remark-slide-content h2 {
+      font-size: 2.5em;
+    }
 
-<textarea id="source">
+    .remark-slide-content h3 {
+      font-size: 1.6em;
+    }
+
+    .footnote {
+      position: absolute;
+      bottom: 3em;
+    }
+
+    li p {
+      line-height: 1.25em;
+    }
+
+    .red {
+      color: #fa0000;
+    }
+
+    .large {
+      font-size: 2em;
+    }
+
+    a,
+    a>code {
+      color: rgb(249, 38, 114);
+      text-decoration: none;
+    }
+
+    code {
+      background: #e7e8e2;
+      border-radius: 5px;
+    }
+
+    .remark-code,
+    .remark-inline-code {
+      font-family: 'Ubuntu Mono';
+    }
+
+    .remark-code-line-highlighted {
+      background-color: #373832;
+    }
+
+    .pull-left {
+      float: left;
+      width: 47%;
+    }
+
+    .pull-right {
+      float: right;
+      width: 47%;
+    }
+
+    .pull-right~p {
+      clear: both;
+    }
+
+    #slideshow .slide .content code {
+      font-size: 0.8em;
+    }
+
+    #slideshow .slide .content pre code {
+      font-size: 0.9em;
+      padding: 15px;
+    }
+
+    .inverse {
+      background: #014908e1;
+      color: #f3f3f3;
+      text-shadow: 0 0 20px #333;
+    }
+
+    .inverse h1,
+    .inverse h2 {
+      color: #f3f3f3;
+      line-height: 0.8em;
+    }
+
+    /* Slide-specific styling */
+    #slide-inverse .footnote {
+      bottom: 12px;
+      left: 20px;
+    }
+
+    #slide-how .slides {
+      font-size: 0.9em;
+      position: absolute;
+      top: 151px;
+      right: 140px;
+    }
+
+    #slide-how .slides h3 {
+      margin-top: 0.2em;
+    }
+
+    #slide-how .slides .first,
+    #slide-how .slides .second {
+      padding: 1px 20px;
+      height: 90px;
+      width: 120px;
+      -moz-box-shadow: 0 0 10px #777;
+      -webkit-box-shadow: 0 0 10px #777;
+      box-shadow: 0 0 10px #777;
+    }
+
+    #slide-how .slides .first {
+      background: #fff;
+      position: absolute;
+      top: 20%;
+      left: 20%;
+      z-index: 1;
+    }
+
+    #slide-how .slides .second {
+      position: relative;
+      background: #fff;
+      z-index: 0;
+    }
+
+    /* Two-column layout */
+    .left-column {
+      color: #777;
+      width: 20%;
+      height: 92%;
+      float: left;
+    }
+
+    .left-column h2:last-of-type,
+    .left-column h3:last-child {
+      color: #000;
+    }
+
+    .right-column {
+      width: 75%;
+      float: right;
+      padding-top: 1em;
+    }
+
+    /* Two-column layout 50/50 */
+    .left-column-50 {
+      width: 49%;
+      float: left;
+    }
+
+    .right-column-50 {
+      width: 49%;
+      float: right;
+    }
+
+    .tiny-font {
+      font-size: 1em
+    }
+  </style>
+</head>
+
+<body>
+
+  <textarea id="source">
 
 name: main-template
 layout: true
@@ -155,7 +207,7 @@ class: center
 <br/>
 <br/>
 <br/>
-## &copy; 2018 Hermann Hueck
+## &copy; 2020 Hermann Hueck
 <br/>
 https://github.com/hermannhueck/use-applicative-where-applicable
 
@@ -403,7 +455,7 @@ This makes *F* a place holder for any Monad which provides us *map* and *flatMap
 | &nbsp; Tuple2        | &nbsp; &nbsp; &nbsp; two adjacent values of possibly different type
 | &nbsp; Function1     | &nbsp; &nbsp; &nbsp; a pure computation on a (yet unknown) input producing an output
 | &nbsp; Reader        | &nbsp; &nbsp; &nbsp; a wrapped Function1
-| &nbsp; Writer        | &nbsp; &nbsp; &nbsp; a values that has another value attached which acts as a sort of log value
+| &nbsp; Writer        | &nbsp; &nbsp; &nbsp; a values that has another value attached which acts as a log message accumulator
 
 ---
 
@@ -725,7 +777,7 @@ Applicative[Option].map2(Option(1), Option(2))(sum2Ints)
 ## Cartesian Product
 
 When working with Applicative we always get the Cartesian product of two or more contexts.
-That isn't obvious when working with the *Option* context
+That isn't immediately obvious when working with the *Option* context
 but becomes evident when we work with *List*.
 
 --
@@ -1046,7 +1098,7 @@ def processABC[F[_]: Apply, A, B, C, D](compute: (A, B, C) => D)
 
 --
 
-This improves <u>composability</u> and allows us provide the *compute* function and the effectful *F*'s in separate steps.
+This improves <u>composability</u> and allows us provide the *compute* function and the effectful *F*'s in independent steps.
 
 --
 
@@ -1133,6 +1185,7 @@ We will come to that later.
 
 In order to kind of 'compose' Monads we need an extra construct such as a Monad Transformer
 which itself is a Monad. I.e.: If we want to compose two Monads we need a third Monad to stack them up.
+(Another way to compose Monads is Kleisli composition.)
 
 --
 
@@ -1536,10 +1589,10 @@ Most Scala devs know these methods defined in the *Future* companion object.
 
 --
 
-Let's start with *Future.sequence*. It is the simpler one.
+Let's start with *Future.sequence*.
 
 <u>Future.sequence API doc:</u> *Simple version of Future.traverse. Asynchronously and non-blockingly
-transforms a TraversableOnce[Future[A]] into a Future[TraversableOnce[A]].
+transforms a IterableOnce[Future[A]] into a Future[IterableOnce[A]].
 Useful for reducing many Futures into a single Future.*
 
 --
@@ -1798,35 +1851,36 @@ https://github.com/hermannhueck/use-applicative-where-applicable
 
 </textarea>
 
-    <script src="remark-latest.min.js" type="text/javascript">
-    </script>
-    <script type="text/javascript">
-      var slideshow = remark.create({
-        // sourceUrl: 'some-source.md',
+  <script src="remark-latest.min.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+    var slideshow = remark.create({
+      // sourceUrl: 'some-source.md',
 
-        // Set the slideshow display ratio
-        // Default: '4:3'
-        // Alternatives: '16:9', ...
-        ratio: '4:3',
+      // Set the slideshow display ratio
+      // Default: '4:3'
+      // Alternatives: '16:9', ...
+      ratio: '4:3',
 
-        // Navigation options
-        navigation: {
-          // Enable or disable navigating using scroll
-          // Default: true
-          // Alternatives: false
-          scroll: false,
+      // Navigation options
+      navigation: {
+        // Enable or disable navigating using scroll
+        // Default: true
+        // Alternatives: false
+        scroll: false,
 
-          // Enable or disable navigation using touch
-          // Default: true
-          // Alternatives: false
-          touch: true,
+        // Enable or disable navigation using touch
+        // Default: true
+        // Alternatives: false
+        touch: true,
 
-          // Enable or disable navigation using click
-          // Default: false
-          // Alternatives: true
-          click: false
-        }
-      });
-    </script>
-  </body>
+        // Enable or disable navigation using click
+        // Default: false
+        // Alternatives: true
+        click: false
+      }
+    });
+  </script>
+</body>
+
 </html>
