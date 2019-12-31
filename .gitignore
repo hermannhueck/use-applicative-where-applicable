@@ -1,32 +1,24 @@
+# directories
+target/
+
+# hidden directories
+.idea/
+.bloop/
+.metals/
+.vscode/
+
+# files
 *.class
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
 *.log
+*.jar
+*.zip
 
-hs_err_pid*
-
+# hidden files
+.history
+.dotty-ide*
 .DS_Store
 
-/activator*
-/.sbtserver
-.sbtserver
-.sbtserver.lock
-
-/logs/
-/target/
-/project/target/
-/project/project/target
-.cache
-.cache-*
-.history
-.lib/
-dist/*
-.worksheet
-
-/bin/
-/.idea
+project/metals.sbt
+.bloop/*
+.metals/*
 
