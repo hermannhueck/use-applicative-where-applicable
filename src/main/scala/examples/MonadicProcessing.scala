@@ -1,7 +1,5 @@
 package examples
 
-import scala.language.{higherKinds, postfixOps}
-
 import cats._
 import cats.implicits._
 
@@ -16,8 +14,9 @@ object MonadicProcessing extends App {
   {
     println("\n----- processInts for Options using a for comprehension")
 
-    def processInts(compute: (Int, Int, Int) => Int)
-                   (oi1: Option[Int], oi2: Option[Int], oi3: Option[Int]): Option[Int] =
+    def processInts(
+        compute: (Int, Int, Int) => Int
+    )(oi1: Option[Int], oi2: Option[Int], oi3: Option[Int]): Option[Int] =
       for {
         i1 <- oi1
         i2 <- oi2
@@ -34,8 +33,7 @@ object MonadicProcessing extends App {
   {
     println("\n----- processInts for Monad context using a for comprehension")
 
-    def processInts[F[_]: Monad](compute: (Int, Int, Int) => Int)
-                                (fi1: F[Int], fi2: F[Int], fi3: F[Int]): F[Int] =
+    def processInts[F[_]: Monad](compute: (Int, Int, Int) => Int)(fi1: F[Int], fi2: F[Int], fi3: F[Int]): F[Int] =
       for {
         i1 <- fi1
         i2 <- fi2
@@ -52,15 +50,14 @@ object MonadicProcessing extends App {
     println(result3)
 
     val result4 = processInts(sum3Ints)(Future(1), Future(2), Future(3))
-    Await.ready(result4, 1 second)
+    Await.ready(result4, 1.second)
     println(result4)
   }
 
   {
     println("\n----- processABC for Monad context using a for comprehension")
 
-    def processABC[F[_]: Monad, A, B, C, D](compute: (A, B, C) => D)
-                                           (fa: F[A], fb: F[B], fc: F[C]): F[D] =
+    def processABC[F[_]: Monad, A, B, C, D](compute: (A, B, C) => D)(fa: F[A], fb: F[B], fc: F[C]): F[D] =
       for {
         a <- fa
         b <- fb
@@ -77,15 +74,14 @@ object MonadicProcessing extends App {
     println(result3)
 
     val result4 = processABC(sum3Ints)(Future(1), Future(2), Future(3))
-    Await.ready(result4, 1 second)
+    Await.ready(result4, 1.second)
     println(result4)
   }
 
   {
     println("\n----- processABC for Monad context using flatMap and map")
 
-    def processABC[F[_]: Monad, A, B, C, D](compute: (A, B, C) => D)(
-                                            fa: F[A], fb: F[B], fc: F[C]): F[D] =
+    def processABC[F[_]: Monad, A, B, C, D](compute: (A, B, C) => D)(fa: F[A], fb: F[B], fc: F[C]): F[D] =
       fa flatMap { a =>
         fb flatMap { b =>
           fc map { c =>
@@ -104,13 +100,18 @@ object MonadicProcessing extends App {
     println(result3)
 
     val result4 = processABC(sum3Ints)(Future(1), Future(2), Future(3))
-    Await.ready(result4, 1 second)
+    Await.ready(result4, 1.second)
     println(result4)
 
-    val result5 = processABC(sum3Ints)(Right(1): Either[String, Int], Right(2): Either[String, Int], Right(3): Either[String, Int])
+    val result5 =
+      processABC(sum3Ints)(Right(1): Either[String, Int], Right(2): Either[String, Int], Right(3): Either[String, Int])
     println(result5)
 
-    val result6 = processABC(sum3Ints)(Right(1): Either[String, Int], Right(2): Either[String, Int], Left("Oooops!"): Either[String, Int])
+    val result6 = processABC(sum3Ints)(
+      Right(1): Either[String, Int],
+      Right(2): Either[String, Int],
+      Left("Oooops!"): Either[String, Int]
+    )
     println(result6)
   }
 

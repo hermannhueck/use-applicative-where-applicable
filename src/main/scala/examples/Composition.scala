@@ -5,8 +5,6 @@ import cats.data.OptionT
 import cats.instances.list._
 import cats.instances.option._
 
-import scala.language.{higherKinds, postfixOps}
-
 object Composition extends App {
 
   println("\n----- Monadic and Applicative composition")
@@ -27,7 +25,7 @@ object Composition extends App {
   println(result1)
 
   def processApplicative(loi1: List[Option[Int]], loi2: List[Option[Int]]): List[Option[Int]] =
-    Applicative[List].compose[Option].map2(loi1, loi2)((_:Int) + (_:Int))
+    Applicative[List].compose[Option].map2(loi1, loi2)((_: Int) + (_: Int))
 
   val result2 = processApplicative(loi1, loi2)
   println(result2)

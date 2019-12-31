@@ -1,13 +1,5 @@
 package examples
 
-import cats._
-import cats.implicits._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
-import scala.language.{higherKinds, postfixOps}
-
 object CurriedFunctions extends App {
 
   println("\n----- Currying and Uncurrying")

@@ -1,15 +1,14 @@
 package examples
 
-import scala.language.{higherKinds, postfixOps}
-
-import cats._, cats.implicits._
+import cats._
+import cats.implicits._
 
 object WhereFunctorIsTooWeak extends App {
 
   println("\n----- Where Functor is too weak ...")
 
-  val add1: Int => Int = 1 + _
-  val sum2Ints: (Int, Int) => Int = _ + _
+  val add1: Int => Int                 = 1 + _
+  val sum2Ints: (Int, Int) => Int      = _ + _
   val sum3Ints: (Int, Int, Int) => Int = _ + _ + _
 
   val res1 = Option(1) map add1
@@ -70,18 +69,18 @@ object WhereFunctorIsTooWeak extends App {
 
   println("----- Cartesian product becomes evident with Applicative[List]")
 
-  val res10 = List((_:Int) * 0, (_:Int) + 100, (x:Int) => x * x) ap List(1, 2, 3)
+  val res10 = List((_: Int) * 0, (_: Int) + 100, (x: Int) => x * x) ap List(1, 2, 3)
   // res10: List[Int] = List(0, 0, 0, 101, 102, 103, 1, 4, 9)
   println(res10)
 
-  val add2: Int => Int => Int = ((_:Int) + (_:Int)).curried
-  val mult2: Int => Int => Int = ((_:Int) * (_:Int)).curried
-  val res11 = List(add2, mult2) <*> List[Int](1, 2) <*> List[Int](100, 200)
+  val add2: Int => Int => Int  = ((_: Int) + (_: Int)).curried
+  val mult2: Int => Int => Int = ((_: Int) * (_: Int)).curried
+  val res11                    = List(add2, mult2) <*> List[Int](1, 2) <*> List[Int](100, 200)
   // res11: List[Int] = List(101, 201, 102, 202, 100, 200, 200, 400)
   println(res11)
 
   val concat: (String, String) => String = _ ++ _
-  val res12 = concat.curried.pure[List] <*> List("ha", "heh", "hmm") <*> List("?", "!", ".")
+  val res12                              = concat.curried.pure[List] <*> List("ha", "heh", "hmm") <*> List("?", "!", ".")
   // res12: List[String] = List(ha?, ha!, ha., heh?, heh!, heh., hmm?, hmm!, hmm.)
   println(res12)
 
@@ -95,7 +94,9 @@ object WhereFunctorIsTooWeak extends App {
 
   println("----- Manipulating the List inside Option[List[Int]]")
 
-  val res15 = Option(3) map {head => (tail: List[Int]) => head :: tail} ap Option(List(4, 4, 4))
+  val res15 = Option(3) map { head => (tail: List[Int]) =>
+    head :: tail
+  } ap Option(List(4, 4, 4))
   // res15: Option[List[Int]] = Some(List(3, 4, 4, 4))
   println(res15)
 

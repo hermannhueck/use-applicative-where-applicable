@@ -4,8 +4,6 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import scala.language.{higherKinds, postfixOps}
-
 object Traversals extends App {
 
   println("\n===== Traversals")
@@ -15,38 +13,37 @@ object Traversals extends App {
 
     val lfd: List[Future[Double]] = List(Future(2.0), Future(4.0), Future(6.0))
     val fld: Future[List[Double]] = Future.sequence(lfd)
-    Await.ready(fld, 1 second)
+    Await.ready(fld, 1.second)
     println(fld)
   }
 
   {
     println("----- List#map + Future.sequence")
 
-    val li: List[Int] = List(1, 2, 3)
+    val li: List[Int]                        = List(1, 2, 3)
     val doubleItAsync: Int => Future[Double] = x => Future { x * 2.0 }
-    val lfi: List[Future[Double]] = li.map(doubleItAsync)
-    val fld: Future[List[Double]] = Future.sequence(lfi)
-    Await.ready(fld, 1 second)
+    val lfi: List[Future[Double]]            = li.map(doubleItAsync)
+    val fld: Future[List[Double]]            = Future.sequence(lfi)
+    Await.ready(fld, 1.second)
     println(fld)
   }
 
   {
     println("----- Future.traverse")
 
-    val li: List[Int] = List(1, 2, 3)
+    val li: List[Int]                        = List(1, 2, 3)
     val doubleItAsync: Int => Future[Double] = x => Future { x * 2.0 }
-    val fld: Future[List[Double]] = Future.traverse(li)(doubleItAsync)
-    Await.ready(fld, 1 second)
+    val fld: Future[List[Double]]            = Future.traverse(li)(doubleItAsync)
+    Await.ready(fld, 1.second)
     println(fld)
   }
-
 
   {
     println("----- Future.traverse with identity function")
 
     val lfd: List[Future[Double]] = List(Future(2.0), Future(4.0), Future(6.0))
     val fld: Future[List[Double]] = Future.traverse(lfd)(identity)
-    Await.ready(fld, 1 second)
+    Await.ready(fld, 1.second)
     println(fld)
   }
 
@@ -60,13 +57,13 @@ object Traversals extends App {
     val lfd: List[Future[Double]] = List(Future(2.0), Future(4.0), Future(6.0))
 
     val fld1: Future[List[Double]] = Traverse[List].sequence(lfd)
-    Await.ready(fld1, 1 second)
+    Await.ready(fld1, 1.second)
     println(fld1)
 
     import cats.syntax.traverse._ // supports 'sequence' as an enrichment of List
 
     val fld2: Future[List[Double]] = lfd.sequence
-    Await.ready(fld2, 1 second)
+    Await.ready(fld2, 1.second)
     println(fld2)
   }
 
@@ -77,17 +74,17 @@ object Traversals extends App {
     import cats.instances.list._
     import cats.instances.future._
 
-    val li: List[Int] = List(1, 2, 3)
+    val li: List[Int]                        = List(1, 2, 3)
     val doubleItAsync: Int => Future[Double] = x => Future { x * 2.0 }
 
     val fld1: Future[List[Double]] = Traverse[List].traverse(li)(doubleItAsync)
-    Await.ready(fld1, 1 second)
+    Await.ready(fld1, 1.second)
     println(fld1)
 
     import cats.syntax.traverse._ // supports 'traverse' as an enrichment of List
 
     val fld2: Future[List[Double]] = li traverse doubleItAsync
-    Await.ready(fld2, 1 second)
+    Await.ready(fld2, 1.second)
     println(fld2)
   }
 
