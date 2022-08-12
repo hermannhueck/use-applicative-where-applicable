@@ -1,7 +1,7 @@
 name := "use-applicative-where-applicable"
 version := "0.1.0"
 
-scalaVersion := "2.13.1"
+scalaVersion := "2.13.8"
 
 scalacOptions ++= Seq(
   "-encoding",
@@ -14,14 +14,14 @@ scalacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.typelevel"  %% "cats-effect" % "2.1.2",
-  "org.scalatest"  %% "scalatest"   % "3.1.1" % Test,
-  "org.scalacheck" %% "scalacheck"  % "1.14.3" % Test,
-  compilerPlugin("org.typelevel" % "kind-projector"      % "0.11.0" cross CrossVersion.full),
+  "org.typelevel"  %% "cats-effect" % "3.3.14",
+  "org.scalatest"  %% "scalatest"   % "3.2.13" % Test,
+  "org.scalacheck" %% "scalacheck"  % "1.16.0" % Test,
+  compilerPlugin("org.typelevel" % "kind-projector"      % "0.13.2" cross CrossVersion.full),
   compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1")
 )
 
-initialCommands in console :=
+console / initialCommands :=
   """import scala.language.{higherKinds, postfixOps}
     |
     |import cats._
